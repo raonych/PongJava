@@ -7,14 +7,16 @@ import java.awt.event.KeyListener;
 import java.util.HashSet;
 
 public class Pong extends JPanel implements ActionListener, KeyListener {
-    private HashSet<Integer> keysPressed = new HashSet<>();
+    private final HashSet<Integer> keysPressed = new HashSet<>();
     int boardWidth = 800;
     int boardHeight = 400;
+    int courtWidth = 790;
+    int courtHeight = 390;
 
     static class Player {
         int x, y;
-        static final int width = 15;
-        static final int height = 70;
+        static final int width = 10;
+        static final int height = 60;
 
         Player(int x, int y) {
             this.x = x;
@@ -25,13 +27,14 @@ public class Pong extends JPanel implements ActionListener, KeyListener {
     int ballDiameter = 20;
 
      //Ball's initial position
-    int ballX = (790 / 2) - (ballDiameter/2);
-    int ballY = (390 / 2) - (ballDiameter/2);
+    int ballX = (courtWidth / 2) - (ballDiameter/2);
+    int ballY = (courtHeight / 2) - (ballDiameter/2);
 
     class Ball {
         int x = ballX;
         int y = ballY;
         Boolean Xdirection = null;
+        Boolean Ydirection = null;
     }
     int playerInitialPosition = boardHeight/2-(Player.height/2);
 
@@ -68,11 +71,11 @@ public class Pong extends JPanel implements ActionListener, KeyListener {
 
         g.setColor(Color.WHITE);
 
-        g.drawRect(5,5,790,390);
-        g.drawLine(790/2,5,790/2,395);
+        g.drawRect(5,5,courtWidth,courtHeight);
+        g.drawLine(courtWidth/2,5,courtWidth/2,395);
         int circleDiameter = 60;
-        int circleX = (790 / 2) - (circleDiameter/2);
-        int circleY = (390 / 2) - (circleDiameter/2);
+        int circleX = (courtWidth / 2) - (circleDiameter/2);
+        int circleY = (courtHeight / 2) - (circleDiameter/2);
         g.drawOval(circleX, circleY, circleDiameter, circleDiameter);
 
 
@@ -90,24 +93,72 @@ public class Pong extends JPanel implements ActionListener, KeyListener {
     public void move() {
         boolean initialDirection = Math.random() < 0.5;
         ball.Xdirection = (ball.Xdirection == null) ? initialDirection : ball.Xdirection;
+
         if (ball.Xdirection) {
             ball.x += 10;
         } else {
             ball.x -= 10;
         }
+        if(ball.Ydirection != null){
+            if (ball.Ydirection) {
+                ball.y -= 5;
+            }
+            if(!ball.Ydirection){
+                ball.y += 5;
+            }
+        }
+
+
+
+
+        //colisão dos players com o cenário
         if (keysPressed.contains(KeyEvent.VK_W)) {
-            playerOne.y -= 20;
+            playerOne.y = Math.max(5, playerOne.y - 20);
         }
         if (keysPressed.contains(KeyEvent.VK_S)) {
-            playerOne.y += 20;
+            playerOne.y = Math.min(395 - Player.height, playerOne.y + 20);
         }
 
         if (keysPressed.contains(KeyEvent.VK_UP)) {
-            playerTwo.y -= 20;
+            playerTwo.y = Math.max(5, playerTwo.y - 20);
         }
         if (keysPressed.contains(KeyEvent.VK_DOWN)) {
-            playerTwo.y += 20;
+            playerTwo.y = Math.min(395 - Player.height, playerTwo.y + 20);
         }
+
+        //colisão vertical da bola
+        if(ball.y <= 5 ){
+            ball.Ydirection = false;
+        }
+        if(ball.y >= courtHeight - ballDiameter){
+            ball.Ydirection = true;
+        }
+        //colisão da bola com os players
+
+            //colisão horizontal player 1
+        if (ball.x <= playerOne.x + Player.width && ball.y + ballDiameter >= playerOne.y && ball.y <= playerOne.y + Player.height) {
+            ball.Xdirection = true;
+        }
+        //colisão vertical player 1
+        if(ball.x <= playerOne.x + Player.width && ball.y + ballDiameter >= playerOne.y && ball.y <= playerOne.y + Player.height && keysPressed.contains(KeyEvent.VK_W)){
+           ball.Ydirection = true;
+        }
+        if(ball.x <= playerOne.x + Player.width && ball.y + ballDiameter >= playerOne.y && ball.y <= playerOne.y + Player.height && keysPressed.contains(KeyEvent.VK_S)){
+            ball.Ydirection = false;
+        }
+        //colisão horizontal player 2
+        if (ball.x + ballDiameter >= playerTwo.x && ball.y + ballDiameter >= playerTwo.y && ball.y <= playerTwo.y + Player.height) {
+            ball.Xdirection = false;
+
+            //colisão vertical player 2
+            if(ball.x <= playerTwo.x + Player.width && ball.y + ballDiameter >= playerTwo.y && ball.y <= playerTwo.y + Player.height && keysPressed.contains(KeyEvent.VK_UP)){
+                ball.Ydirection = true;
+            }
+            if(ball.x <= playerTwo.x + Player.width && ball.y + ballDiameter >= playerTwo.y && ball.y <= playerTwo.y + Player.height && keysPressed.contains(KeyEvent.VK_DOWN)){
+                ball.Ydirection = false;
+            }
+        }
+
 
 
 
