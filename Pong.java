@@ -159,7 +159,7 @@ public class Pong extends JPanel implements ActionListener, KeyListener {
         }
 
         //colisão da bola com os players
-        playerTwoCollision = ball.x + ballDiameter == playerTwo.x && ball.y + ballDiameter >= playerTwo.y && ball.y <= playerTwo.y + Player.height;
+        playerTwoCollision = ball.x + ballDiameter >= playerTwo.x && ball.y + ballDiameter >= playerTwo.y && ball.y <= playerTwo.y + Player.height;
 
         playerOneCollision = ball.x <= playerOne.x + Player.width && ball.y + ballDiameter >= playerOne.y && ball.y <= playerOne.y + Player.height;
 
@@ -186,7 +186,7 @@ public class Pong extends JPanel implements ActionListener, KeyListener {
         if(playerTwoCollision && keysPressed.contains(KeyEvent.VK_DOWN)){
             ball.Ydirection = false;
         }
-    };
+    }
 
 
 
