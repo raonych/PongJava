@@ -14,8 +14,8 @@ public class Pong extends JPanel implements ActionListener, KeyListener {
     int courtHeight = 390;
 
     static class Player {
-        int x, y;
-        static final int width = 10;
+        int x, y, score;
+        static final int width = 5;
         static final int height = 60;
 
         Player(int x, int y) {
@@ -42,9 +42,17 @@ public class Pong extends JPanel implements ActionListener, KeyListener {
 
     Player playerTwo;
 
+    boolean playerTwoCollision;
+
+    boolean playerOneCollision;
+
     Ball ball;
 
     Timer gameloop;
+
+    boolean pointScored = true;
+
+
 
     Pong() {
         setPreferredSize(new Dimension(boardWidth,boardHeight));
@@ -71,6 +79,12 @@ public class Pong extends JPanel implements ActionListener, KeyListener {
 
         g.setColor(Color.WHITE);
 
+        //draw scores
+        g.setFont(new Font("Arial", Font.BOLD, 20));
+        g.drawString(String.valueOf((int) playerOne.score), courtWidth/2 - 50, 30);
+        g.drawString(String.valueOf((int) playerTwo.score), courtWidth/2 + 50, 30);
+
+        //draw court
         g.drawRect(5,5,courtWidth,courtHeight);
         g.drawLine(courtWidth/2,5,courtWidth/2,395);
         int circleDiameter = 60;
@@ -78,14 +92,12 @@ public class Pong extends JPanel implements ActionListener, KeyListener {
         int circleY = (courtHeight / 2) - (circleDiameter/2);
         g.drawOval(circleX, circleY, circleDiameter, circleDiameter);
 
-
-
+        //draw players
         g.fillRect(playerOne.x, playerOne.y, Player.width, Player.height);
-
         g.fillRect(playerTwo.x, playerTwo.y, Player.width, Player.height);
 
+        //draw ball
         g.setColor(Color.RED);
-
         g.fillOval(ball.x, ball.y,ballDiameter, ballDiameter);
 
     }
@@ -108,8 +120,13 @@ public class Pong extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-
-
+        if(ball.x < 5){
+            pointScored = true;
+            playerTwo.score++;
+        }else if(ball.x > courtWidth){
+            pointScored = true;
+            playerOne.score++;
+        }
 
         //colisão dos players com o cenário
         if (keysPressed.contains(KeyEvent.VK_W)) {
@@ -126,6 +143,13 @@ public class Pong extends JPanel implements ActionListener, KeyListener {
             playerTwo.y = Math.min(395 - Player.height, playerTwo.y + 20);
         }
 
+        ballCollision();
+
+    }
+
+
+
+    public void ballCollision(){
         //colisão vertical da bola
         if(ball.y <= 5 ){
             ball.Ydirection = false;
@@ -133,45 +157,63 @@ public class Pong extends JPanel implements ActionListener, KeyListener {
         if(ball.y >= courtHeight - ballDiameter){
             ball.Ydirection = true;
         }
+
         //colisão da bola com os players
+        playerTwoCollision = ball.x + ballDiameter == playerTwo.x && ball.y + ballDiameter >= playerTwo.y && ball.y <= playerTwo.y + Player.height;
+
+        playerOneCollision = ball.x <= playerOne.x + Player.width && ball.y + ballDiameter >= playerOne.y && ball.y <= playerOne.y + Player.height;
+
 
             //colisão horizontal player 1
-        if (ball.x <= playerOne.x + Player.width && ball.y + ballDiameter >= playerOne.y && ball.y <= playerOne.y + Player.height) {
+        if (playerOneCollision) {
             ball.Xdirection = true;
         }
-        //colisão vertical player 1
-        if(ball.x <= playerOne.x + Player.width && ball.y + ballDiameter >= playerOne.y && ball.y <= playerOne.y + Player.height && keysPressed.contains(KeyEvent.VK_W)){
-           ball.Ydirection = true;
+            //colisão vertical player 1
+        if(playerOneCollision && keysPressed.contains(KeyEvent.VK_W)){
+            ball.Ydirection = true;
         }
-        if(ball.x <= playerOne.x + Player.width && ball.y + ballDiameter >= playerOne.y && ball.y <= playerOne.y + Player.height && keysPressed.contains(KeyEvent.VK_S)){
+        if(playerOneCollision && keysPressed.contains(KeyEvent.VK_S)){
             ball.Ydirection = false;
         }
-        //colisão horizontal player 2
-        if (ball.x + ballDiameter >= playerTwo.x && ball.y + ballDiameter >= playerTwo.y && ball.y <= playerTwo.y + Player.height) {
+            //colisão horizontal player 2
+        if (playerTwoCollision) {
             ball.Xdirection = false;
-
-            //colisão vertical player 2
-            if(ball.x <= playerTwo.x + Player.width && ball.y + ballDiameter >= playerTwo.y && ball.y <= playerTwo.y + Player.height && keysPressed.contains(KeyEvent.VK_UP)){
-                ball.Ydirection = true;
-            }
-            if(ball.x <= playerTwo.x + Player.width && ball.y + ballDiameter >= playerTwo.y && ball.y <= playerTwo.y + Player.height && keysPressed.contains(KeyEvent.VK_DOWN)){
-                ball.Ydirection = false;
-            }
         }
+            //colisão vertical player 2
+        if(playerTwoCollision && keysPressed.contains(KeyEvent.VK_UP)){
+            ball.Ydirection = true;
+        }
+        if(playerTwoCollision && keysPressed.contains(KeyEvent.VK_DOWN)){
+            ball.Ydirection = false;
+        }
+    };
 
 
 
 
-    }
     @Override
     public void actionPerformed(ActionEvent e) {
         move();
         repaint();
+        if(pointScored){
+            gameloop.stop();
+            ball.Ydirection = null;
+            ball.Xdirection = null;
+            playerOne.y = playerInitialPosition;
+            playerTwo.y = playerInitialPosition;
+            ball.x = ballX;
+            ball.y = ballY;
+        }
+
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
         keysPressed.add(e.getKeyCode());
+        if(e.getKeyCode() == KeyEvent.VK_ENTER){
+            gameloop.start();
+            pointScored = false;
+        };
     }
     @Override
     public void keyReleased(KeyEvent e) {
